@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls *)",
+      "Bash(cat \"E:\\\\\\\\lenv\\\\\\\\llmmode\\\\\\\\localdown\\\\\\\\VibeVoice-1.5B\\\\\\\\config.json\")",
+      "Bash(cat \"E:\\\\\\\\lenv\\\\\\\\llmmode\\\\\\\\localdown\\\\\\\\VibeVoice-Realtime-0.5B\\\\\\\\config.json\")",
+      "Bash(cat \"E:\\\\\\\\lenv\\\\\\\\llmmode\\\\\\\\localdown\\\\\\\\VibeVoice-ASR\\\\\\\\config.json\")",
+      "Bash(grep *)",
+      "Bash(python -c \"import ast, sys; [ast.parse\\(open\\(f,encoding='utf-8'\\).read\\(\\), f\\) for f in ['api/server.py','api/model_manager.py','api/config.py','api/voices.py','api/routers/asr.py','api/routers/tts.py','api/routers/realtime.py']]; print\\('syntax OK'\\)\")",
+      "Bash(where conda *)",
+      "Bash(conda env *)",
+      "Bash(D:\\\\\\\\ProgramData\\\\\\\\Anaconda3\\\\\\\\envs\\\\\\\\pytorchst1\\\\\\\\python.exe *)",
+      "Bash(/d/ProgramData/Anaconda3/envs/pytorchst1/python.exe *)",
+      "Bash(\"/d/ProgramData/Anaconda3/envs/pytorchst1/python.exe\" -m pip show pillow)",
+      "Bash(\"/d/ProgramData/Anaconda3/envs/pytorchst1/python.exe\" -c \"from PIL import Image; print\\(Image.__file__\\)\")",
+      "Bash(\"/d/ProgramData/Anaconda3/envs/pytorchst1/python.exe\" -m pip install --force-reinstall --no-deps pillow)",
+      "Bash(\"/d/ProgramData/Anaconda3/envs/pytorchst1/python.exe\" -c \"import sys,torch,transformers; print\\('python',sys.version.split\\(\\)[0]\\); print\\('torch',torch.__version__,'cuda',torch.cuda.is_available\\(\\)\\); print\\('transformers',transformers.__version__\\)\")",
+      "Bash(mkdir -p logs)",
+      "Bash(VIBEVOICE_DEVICE=cuda HF_ENDPOINT=https://hf-mirror.com \"/d/ProgramData/Anaconda3/envs/pytorchst1/python.exe\" -m uvicorn api.server:app --host 127.0.0.1 --port 8000 --log-level info)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/health)",
+      "Bash(curl -s http://127.0.0.1:8000/health)",
+      "Bash(curl -s http://127.0.0.1:8000/v1/voices)",
+      "Bash(curl -s -o /tmp/tts_body.json -w \"HTTP %{http_code}\\\\n\" -X POST http://127.0.0.1:8000/v1/tts/synthesize -H \"Content-Type: application/json\" -d '{\"text\":\"Hello\"}')",
+      "Read(//tmp/**)",
+      "Bash(curl -sS -o /tmp/out.wav -w \"HTTP %{http_code} | size=%{size_download} bytes | time=%{time_total}s\\\\n\" -X POST http://127.0.0.1:8000/v1/tts/realtime -H \"Content-Type: application/json\" -d '{\"text\":\"Hello world. This is a quick test of the VibeVoice realtime API.\",\"voice\":\"en-Carter_man\",\"inference_steps\":5,\"cfg_scale\":1.5}' --max-time 240)",
+      "Bash(\"/d/ProgramData/Anaconda3/envs/pytorchst1/python.exe\" -m pip install \"transformers==4.51.3\")",
+      "Bash(kill %1)",
+      "Bash(curl *)",
+      "Bash(git ls-remote *)"
+    ]
+  }
+}

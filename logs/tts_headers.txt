@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+date: Mon, 20 Apr 2026 08:02:45 GMT
+server: uvicorn
+x-audio-duration-sec: 7.733
+x-generation-time-sec: 20.087
+x-sample-rate: 24000
+x-speakers: en-Carter_man,en-Alice_woman
+content-type: audio/wav
+transfer-encoding: chunked
+
