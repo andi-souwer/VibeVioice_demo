@@ -20,6 +20,12 @@ SAMPLE_RATE = 24_000
 
 IDLE_EVICT_SECONDS = int(os.environ.get("VIBEVOICE_IDLE_EVICT_SECONDS", "600"))
 
+# When set, each API call evicts its model (and frees VRAM) as soon as the
+# response is produced. Default off: keep the model warm for IDLE_EVICT_SECONDS.
+EVICT_AFTER_REQUEST = os.environ.get(
+    "VIBEVOICE_EVICT_AFTER_REQUEST", "0"
+).strip().lower() in {"1", "true", "yes", "on"}
+
 DEVICE = os.environ.get("VIBEVOICE_DEVICE", "cuda")
 
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")

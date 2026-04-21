@@ -99,8 +99,6 @@ async def transcribe(
             except Exception:
                 segments = []
 
-        loaded.last_used = time.time()
-
         return {
             "file": audio.filename,
             "raw_text": raw_text,
@@ -108,6 +106,7 @@ async def transcribe(
             "generation_time_sec": elapsed,
         }
     finally:
+        get_manager().mark_done("asr")
         try:
             os.unlink(tmp_path)
         except OSError:

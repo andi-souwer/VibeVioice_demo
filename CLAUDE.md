@@ -87,8 +87,16 @@ voice-cloning path. Don't swap them.
 `_registry_lock`. A background thread runs every 30 s and evicts any kind
 untouched for more than `VIBEVOICE_IDLE_EVICT_SECONDS` (default 600) s.
 
+Routes end their critical section by calling `manager.mark_done(kind)`
+(from a `finally`, outside the per-model lock). It refreshes `last_used`
+so the reaper leaves the model alone — unless `VIBEVOICE_EVICT_AFTER_REQUEST`
+is set, in which case it evicts synchronously and VRAM is released right
+after the response. `evict()` moves the model to CPU before dropping
+refs; plain `del` leaves params pinned in the CUDA cache until the next
+GC, and is too optimistic about `accelerate` hooks.
+
 When you add a new kind, also update `/v1/admin/evict`'s allow-list in
-`api/server.py`.
+`api/server.py` and call `mark_done` in the new router's `finally`.
 
 ### 5. Per-model locking rule
 

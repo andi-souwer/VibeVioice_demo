@@ -99,6 +99,7 @@ start_api.bat
 | `VIBEVOICE_MODEL_ROOT`          | `E:\lenv\llmmode\localdown`          | 三个模型目录的父文件夹。               |
 | `VIBEVOICE_DEVICE`              | `cuda`                               | `cuda` 或 `cpu`。                      |
 | `VIBEVOICE_IDLE_EVICT_SECONDS`  | `600`                                | 已加载模型被释放前的空闲秒数。         |
+| `VIBEVOICE_EVICT_AFTER_REQUEST` | `0`                                  | 每次请求结束立即释放显存（不等空闲超时）。显存吃紧的机器建议设为 `1`。 |
 | `ASR_LANGUAGE_MODEL_NAME`       | `Qwen/Qwen2.5-7B`                    | ASR 语言模型所用 HF tokenizer 基座。   |
 | `HF_ENDPOINT`                   | `https://hf-mirror.com`              | ASR 处理器下载 Qwen tokenizer 时使用。 |
 

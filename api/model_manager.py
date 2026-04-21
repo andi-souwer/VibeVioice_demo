@@ -17,6 +17,7 @@ from .config import (
     ASR_LANGUAGE_MODEL_NAME,
     ASR_MODEL_PATH,
     DEVICE,
+    EVICT_AFTER_REQUEST,
     IDLE_EVICT_SECONDS,
     REALTIME_MODEL_PATH,
     TTS_MODEL_PATH,
@@ -96,16 +97,48 @@ class ModelManager:
         if loaded is None:
             return False
         with loaded.lock:
+            # Move the model to CPU before dropping references. This forces the
+            # CUDA allocator to release the parameter tensors immediately —
+            # relying on GC alone leaves VRAM held until the next collection,
+            # and any lingering `accelerate` hooks would keep params pinned.
+            model = getattr(loaded, "model", None)
+            if model is not None:
+                try:
+                    model.to("cpu")
+                except Exception:
+                    pass
             try:
                 del loaded.model
+            except Exception:
+                pass
+            try:
                 del loaded.processor
             except Exception:
                 pass
+            del model
+        # Two passes: the first drops our refs, the second catches cycles
+        # (HF modules reference each other via _modules / parent links).
+        gc.collect()
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         print(f"[model_manager] Evicted {kind}")
         return True
+
+    def mark_done(self, kind: str) -> None:
+        """Call after an API request finishes using the model.
+
+        Normally just refreshes `last_used` so the idle reaper leaves the model
+        alone. When `VIBEVOICE_EVICT_AFTER_REQUEST` is set, evicts immediately
+        so VRAM is released as soon as the response is produced.
+        """
+        if EVICT_AFTER_REQUEST:
+            self.evict(kind)
+            return
+        with self._registry_lock:
+            loaded = self._models.get(kind)
+        if loaded is not None:
+            loaded.last_used = time.time()
 
     # -- internal -----------------------------------------------------------
 

@@ -89,61 +89,64 @@ def _generate_stream(
     voice_path = resolve_voice(voice)
     device = next(model.parameters()).device
 
-    with loaded.lock:
-        if inference_steps and inference_steps > 0:
-            model.set_ddpm_inference_steps(num_steps=inference_steps)
+    errors: List[BaseException] = []
+    try:
+        with loaded.lock:
+            if inference_steps and inference_steps > 0:
+                model.set_ddpm_inference_steps(num_steps=inference_steps)
 
-        prefilled = torch.load(
-            str(voice_path), map_location=device, weights_only=False
-        )
-        inputs = processor.process_input_with_cached_prompt(
-            text=text.strip(),
-            cached_prompt=prefilled,
-            padding=True,
-            return_tensors="pt",
-            return_attention_mask=True,
-        )
-        inputs = {k: (v.to(device) if hasattr(v, "to") else v) for k, v in inputs.items()}
+            prefilled = torch.load(
+                str(voice_path), map_location=device, weights_only=False
+            )
+            inputs = processor.process_input_with_cached_prompt(
+                text=text.strip(),
+                cached_prompt=prefilled,
+                padding=True,
+                return_tensors="pt",
+                return_attention_mask=True,
+            )
+            inputs = {k: (v.to(device) if hasattr(v, "to") else v) for k, v in inputs.items()}
 
-        streamer = AudioStreamer(batch_size=1, stop_signal=None, timeout=None)
-        errors: List[BaseException] = []
-        stop_event = threading.Event()
+            streamer = AudioStreamer(batch_size=1, stop_signal=None, timeout=None)
+            stop_event = threading.Event()
 
-        def _run():
+            def _run():
+                try:
+                    model.generate(
+                        **inputs,
+                        max_new_tokens=None,
+                        cfg_scale=cfg_scale,
+                        tokenizer=processor.tokenizer,
+                        generation_config={
+                            "do_sample": do_sample,
+                            "temperature": temperature if do_sample else 1.0,
+                            "top_p": top_p if do_sample else 1.0,
+                        },
+                        audio_streamer=streamer,
+                        stop_check_fn=stop_event.is_set,
+                        verbose=False,
+                        refresh_negative=refresh_negative,
+                        all_prefilled_outputs=copy.deepcopy(prefilled),
+                    )
+                except Exception as exc:
+                    errors.append(exc)
+                    streamer.end()
+
+            worker = threading.Thread(target=_run, daemon=True)
+            worker.start()
+
             try:
-                model.generate(
-                    **inputs,
-                    max_new_tokens=None,
-                    cfg_scale=cfg_scale,
-                    tokenizer=processor.tokenizer,
-                    generation_config={
-                        "do_sample": do_sample,
-                        "temperature": temperature if do_sample else 1.0,
-                        "top_p": top_p if do_sample else 1.0,
-                    },
-                    audio_streamer=streamer,
-                    stop_check_fn=stop_event.is_set,
-                    verbose=False,
-                    refresh_negative=refresh_negative,
-                    all_prefilled_outputs=copy.deepcopy(prefilled),
-                )
-            except Exception as exc:
-                errors.append(exc)
+                for raw_chunk in streamer.get_stream(0):
+                    yield _audio_chunk_to_float32(raw_chunk)
+            finally:
+                stop_event.set()
                 streamer.end()
-
-        worker = threading.Thread(target=_run, daemon=True)
-        worker.start()
-
-        try:
-            for raw_chunk in streamer.get_stream(0):
-                yield _audio_chunk_to_float32(raw_chunk)
-        finally:
-            stop_event.set()
-            streamer.end()
-            worker.join(timeout=5.0)
-            loaded.last_used = time.time()
-            if errors:
-                raise errors[0]
+                worker.join(timeout=5.0)
+    finally:
+        # Runs after the lock is released, so evict() (if enabled) can acquire it.
+        get_manager().mark_done("realtime")
+    if errors:
+        raise errors[0]
 
 
 def _wav_bytes(samples: np.ndarray) -> bytes:

@@ -100,6 +100,7 @@ runs `uvicorn api.server:app` on port 8000. Override any of:
 | `VIBEVOICE_MODEL_ROOT`          | `E:\lenv\llmmode\localdown`          | Parent folder of the three model dirs. |
 | `VIBEVOICE_DEVICE`              | `cuda`                               | `cuda` or `cpu`.                       |
 | `VIBEVOICE_IDLE_EVICT_SECONDS`  | `600`                                | Idle seconds before a loaded model is released. |
+| `VIBEVOICE_EVICT_AFTER_REQUEST` | `0`                                  | Release VRAM right after each request (no idle wait). Set to `1` on tight-VRAM hosts. |
 | `ASR_LANGUAGE_MODEL_NAME`       | `Qwen/Qwen2.5-7B`                    | HF tokenizer base for the ASR LM.      |
 | `HF_ENDPOINT`                   | `https://hf-mirror.com`              | Used when the ASR processor pulls the Qwen tokenizer. |
 

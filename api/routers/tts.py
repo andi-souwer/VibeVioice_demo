@@ -126,9 +126,10 @@ def synthesize(req: TTSRequest):
                 verbose=False,
                 is_prefill=True,
             )
-        loaded.last_used = time.time()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"TTS generation failed: {exc}")
+    finally:
+        get_manager().mark_done("tts")
 
     speech = outputs.speech_outputs
     if not speech or speech[0] is None:
