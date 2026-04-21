@@ -8,7 +8,6 @@ from __future__ import annotations
 import gc
 import threading
 import time
-import traceback
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional
 
@@ -42,11 +41,9 @@ def _pick_dtype_attn(device: str):
 def _load_with_fallback(loader: Callable[[str], Any], preferred_attn: str):
     try:
         return loader(preferred_attn)
-    except Exception as exc:
+    except ImportError as exc:
         if preferred_attn != "sdpa":
-            print(f"[model_manager] {preferred_attn} load failed ({type(exc).__name__}: {exc}); "
-                  f"retrying with sdpa")
-            traceback.print_exc()
+            print(f"[model_manager] {preferred_attn} unavailable ({exc}); falling back to sdpa")
             return loader("sdpa")
         raise
 
