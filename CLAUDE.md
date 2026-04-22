@@ -85,7 +85,7 @@ voice-cloning path. Don't swap them.
 `api/model_manager.py::get_manager()` returns the process-wide
 `ModelManager`. Loads each model kind at most once, protected by
 `_registry_lock`. A background thread runs every 30 s and evicts any kind
-untouched for more than `VIBEVOICE_IDLE_EVICT_SECONDS` (default 600) s.
+untouched for more than `VIBEVOICE_IDLE_EVICT_SECONDS` (default 60) s.
 
 Routes end their critical section by calling `manager.mark_done(kind)`
 (from a `finally`, outside the per-model lock). It refreshes `last_used`

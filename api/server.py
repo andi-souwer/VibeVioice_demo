@@ -6,7 +6,7 @@ Run:
 Env vars:
     VIBEVOICE_MODEL_ROOT         Root dir containing the three model folders
     VIBEVOICE_DEVICE             "cuda" (default) or "cpu"
-    VIBEVOICE_IDLE_EVICT_SECONDS Idle seconds before a model is released (default 600)
+    VIBEVOICE_IDLE_EVICT_SECONDS Idle seconds before a model is released (default 60)
     ASR_LANGUAGE_MODEL_NAME      HF tokenizer for the ASR LM (default Qwen/Qwen2.5-7B)
     HF_ENDPOINT                  defaults to https://hf-mirror.com
 """

@@ -9,7 +9,7 @@ Standard HTTP + WebSocket API wrapping the three locally-downloaded models:
 | Realtime  | VibeVoice-Realtime-0.5B      | `E:\lenv\llmmode\localdown\VibeVoice-Realtime-0.5B` |
 
 Models are **loaded lazily** on first request and released after
-`VIBEVOICE_IDLE_EVICT_SECONDS` (default 600) seconds of inactivity.
+`VIBEVOICE_IDLE_EVICT_SECONDS` (default 60) seconds of inactivity.
 
 ## Launch
 

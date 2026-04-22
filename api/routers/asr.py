@@ -15,7 +15,7 @@ router = APIRouter(prefix="/v1/asr", tags=["asr"])
 
 
 @router.post("/transcribe")
-async def transcribe(
+def transcribe(
     audio: UploadFile = File(..., description="Audio file (wav/mp3/m4a/flac, etc.)"),
     max_new_tokens: int = Form(4096),
     temperature: float = Form(0.0),
@@ -27,8 +27,14 @@ async def transcribe(
         description="Optional context_info: free-form hotwords / domain terms",
     ),
 ) -> Dict[str, Any]:
-    """Transcribe an uploaded audio file and return structured segments."""
-    raw = await audio.read()
+    """Transcribe an uploaded audio file and return structured segments.
+
+    Declared `def` (not `async def`) so FastAPI dispatches it to the threadpool.
+    `model.generate()` is a multi-minute synchronous CUDA call; running it in
+    the event loop would freeze every other endpoint (including /health) until
+    it returns, which looks to clients like the service hung.
+    """
+    raw = audio.file.read()
     if not raw:
         raise HTTPException(status_code=400, detail="Empty audio payload")
 

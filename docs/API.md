@@ -12,7 +12,7 @@ Three voice models are wrapped:
 | Realtime  | `microsoft/VibeVoice-Realtime-0.5B`         | Low-latency streaming single-speaker TTS                       |
 
 Models are **loaded lazily** on first request and released after
-`VIBEVOICE_IDLE_EVICT_SECONDS` seconds of inactivity (default `600`). Use
+`VIBEVOICE_IDLE_EVICT_SECONDS` seconds of inactivity (default `60`). Use
 `POST /v1/admin/evict` to release VRAM on demand.
 
 ---

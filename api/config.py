@@ -18,7 +18,7 @@ TTS_VOICES_DIR = VIBEVOICE_DIR / "demo" / "voices" / "tts_model"
 
 SAMPLE_RATE = 24_000
 
-IDLE_EVICT_SECONDS = int(os.environ.get("VIBEVOICE_IDLE_EVICT_SECONDS", "600"))
+IDLE_EVICT_SECONDS = int(os.environ.get("VIBEVOICE_IDLE_EVICT_SECONDS", "60"))
 
 # When set, each API call evicts its model (and frees VRAM) as soon as the
 # response is produced. Default off: keep the model warm for IDLE_EVICT_SECONDS.

@@ -129,8 +129,11 @@ class ModelManager:
         """Call after an API request finishes using the model.
 
         Normally just refreshes `last_used` so the idle reaper leaves the model
-        alone. When `VIBEVOICE_EVICT_AFTER_REQUEST` is set, evicts immediately
-        so VRAM is released as soon as the response is produced.
+        alone, then returns PyTorch's cached-but-unused CUDA blocks to the pool
+        (without this, `memory_reserved()` — and what nvidia-smi reports —
+        stays high between calls even though the tensors are gone, which looks
+        like a VRAM leak). When `VIBEVOICE_EVICT_AFTER_REQUEST` is set, evicts
+        the whole model so its params are released too.
         """
         if EVICT_AFTER_REQUEST:
             self.evict(kind)
@@ -139,6 +142,8 @@ class ModelManager:
             loaded = self._models.get(kind)
         if loaded is not None:
             loaded.last_used = time.time()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     # -- internal -----------------------------------------------------------
 
