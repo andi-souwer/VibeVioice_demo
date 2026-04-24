@@ -93,10 +93,29 @@ class ModelManager:
 
     def evict(self, kind: str) -> bool:
         with self._registry_lock:
-            loaded = self._models.pop(kind, None)
+            loaded = self._models.get(kind)
         if loaded is None:
             return False
-        with loaded.lock:
+        # Try the model lock without blocking. If a request is currently using
+        # the model, defer — otherwise we'd hold a popped-but-not-yet-freed
+        # model while a concurrent `_get_or_load` misses the registry and
+        # loads a second copy (observed: 4090 with ASR-7B hit ~35 GB of live
+        # tensors = 2 × 16 GB weights, spilled to host RAM via the driver's
+        # sysmem-fallback and made inference PCIe-bound).
+        if not loaded.lock.acquire(blocking=False):
+            print(f"[model_manager] Defer evict {kind}: in use")
+            return False
+        try:
+            # Re-check under registry lock and pop only now that we own the
+            # model lock. Safe because `_get_or_load` also holds `_registry_lock`
+            # while checking/inserting, so it either sees the entry (reuses it)
+            # or doesn't (but then nothing else can pop it underneath us).
+            with self._registry_lock:
+                current = self._models.get(kind)
+                if current is not loaded:
+                    return False
+                self._models.pop(kind, None)
+
             # Move the model to CPU before dropping references. This forces the
             # CUDA allocator to release the parameter tensors immediately —
             # relying on GC alone leaves VRAM held until the next collection,
@@ -116,6 +135,8 @@ class ModelManager:
             except Exception:
                 pass
             del model
+        finally:
+            loaded.lock.release()
         # Two passes: the first drops our refs, the second catches cycles
         # (HF modules reference each other via _modules / parent links).
         gc.collect()
